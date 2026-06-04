@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-night text-ink antialiased;
+    background-image: radial-gradient(
+        1200px 600px at 50% -10%,
+        rgba(15, 52, 96, 0.55),
+        transparent 60%
+      ),
+      radial-gradient(800px 400px at 100% 0%, rgba(232, 184, 75, 0.06), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-ink;
+  }
+
+  /* Scrollbar discreta no tema escuro */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-night-700/70 rounded-full;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-night-800/60 backdrop-blur-xl border border-white/5;
+  }
+
+  .card-surface {
+    @apply glass rounded-3xl shadow-card;
+  }
+
+  .gold-text {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+
+  /* Container mobile-first: o app vive numa coluna estreita centrada (paridade com mobile). */
+  .app-shell {
+    @apply mx-auto w-full max-w-md min-h-screen relative;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-night-700/40 rounded-xl;
+  }
+  .skeleton::after {
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    content: "";
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+  }
+}
