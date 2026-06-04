@@ -22,7 +22,7 @@ export function DmpHighlight({ dmp }: { dmp?: Dmp }) {
         <div className="mb-3 flex items-center gap-2 text-gold">
           <Target size={18} />
           <span className="text-xs font-semibold uppercase tracking-widest">
-            Meu Objetivo Principal
+            Meu Grande Objetivo
           </span>
         </div>
         <p className="font-display text-3xl font-semibold text-ink">

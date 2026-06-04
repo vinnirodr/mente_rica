@@ -6,6 +6,7 @@ import type {
   AiFeedback,
   AppNotification,
   ChatMessage,
+  Diagnosis,
   Dmp,
   JournalEntry,
   MindsetProfile,
@@ -41,6 +42,8 @@ interface MindRichState {
   setOnboardingStep: (step: number) => void;
   setName: (name: string) => void;
   setMindset: (profile: MindsetProfile) => void;
+  setDiagnosis: (diagnosis: Diagnosis) => void;
+  recommendedPrincipleId: () => number;
   setDmp: (dmp: Dmp) => void;
   completeOnboarding: (durationMs: number) => void;
 
@@ -124,15 +127,21 @@ export const useStore = create<MindRichState>()(
         set((s) => ({ onboarding: { ...s.onboarding, step } })),
       setName: (name) => set((s) => ({ user: { ...s.user, name } })),
       setMindset: (profile) => set((s) => ({ user: { ...s.user, mindsetProfile: profile } })),
+      setDiagnosis: (diagnosis) => set((s) => ({ user: { ...s.user, diagnosis } })),
+      recommendedPrincipleId: () => get().user.diagnosis?.recommendedPrincipleId ?? 1,
+
       setDmp: (dmp) => set((s) => ({ user: { ...s.user, dmp } })),
 
       completeOnboarding: (durationMs) => {
         const { progress } = get();
-        // Garante que o primeiro princípio esteja iniciado e popula dados de exemplo.
+        // Inicia o princípio RECOMENDADO pelo diagnóstico e popula dados de exemplo.
+        const startId = get().recommendedPrincipleId();
         const seededJournal = seedJournal();
         set((s) => ({
           onboarding: { completed: true, step: 5 },
-          progress: progress[1] ? progress : { ...progress, 1: { status: "in_progress" } },
+          progress: progress[startId]
+            ? progress
+            : { ...progress, [startId]: { status: "in_progress" } },
           journal: s.journal.length ? s.journal : seededJournal,
           notifications: s.notifications.length ? s.notifications : seedNotifications(),
           bestStreak: Math.max(s.bestStreak, computeStreak(seededJournal)),
@@ -179,8 +188,8 @@ export const useStore = create<MindRichState>()(
         if (next) {
           get().pushNotification({
             kind: "principle_unlocked",
-            title: `Princípio ${next.id} desbloqueado: ${next.title}`,
-            body: "Você concluiu o princípio anterior. Continue sua jornada de prática.",
+            title: `Novo passo liberado: ${next.accessibleTitle}`,
+            body: "Você concluiu o passo anterior. Continue sua jornada de prática.",
             href: `/principles/${next.id}`,
           });
         }
@@ -199,6 +208,9 @@ export const useStore = create<MindRichState>()(
         const { progress } = get();
         const inProgress = PRINCIPLES.find((p) => progress[p.id]?.status === "in_progress");
         if (inProgress) return inProgress.id;
+        // Nada em andamento: preferir o recomendado pelo diagnóstico, se não concluído.
+        const recommended = get().recommendedPrincipleId();
+        if (progress[recommended]?.status !== "completed") return recommended;
         const firstNotDone = PRINCIPLES.find((p) => progress[p.id]?.status !== "completed");
         return firstNotDone?.id ?? 13;
       },

@@ -89,8 +89,8 @@ export default function DashboardPage() {
                     {current.id}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-ink">{current.title}</p>
-                    <p className="text-xs text-ink-faint">Em andamento</p>
+                    <p className="text-sm font-semibold text-ink">{current.accessibleTitle}</p>
+                    <p className="text-xs text-ink-faint">Seu foco agora</p>
                   </div>
                 </div>
                 <ArrowRight size={18} className="text-ink-faint" />

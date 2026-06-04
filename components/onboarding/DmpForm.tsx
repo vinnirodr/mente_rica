@@ -55,10 +55,11 @@ export function DmpForm({ onSubmit }: { onSubmit: (dmp: Dmp) => void }) {
         >
           <Target size={26} />
         </motion.div>
-        <h2 className="font-display text-2xl leading-snug">Seu Objetivo Principal</h2>
+        <h2 className="font-display text-2xl leading-snug">Seu Grande Objetivo</h2>
         <p className="text-sm text-ink-muted">
-          O <span className="text-gold">Definite Major Purpose</span> é o coração da sua jornada:
-          valor, prazo e o que você está disposto a dar em troca.
+          É o destino que guia toda a sua jornada: <span className="text-gold">quanto</span> você
+          quer, <span className="text-gold">até quando</span> e o que está disposto a dar em troca.
+          Quanto mais específico, mais sua mente trabalha por ele.
         </p>
       </div>
 

@@ -89,8 +89,10 @@ export default function PrincipleDetailPage() {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <p className="text-xs uppercase tracking-widest text-gold">Princípio {principle.id}</p>
-          <h1 className="font-display text-xl leading-none">{principle.title}</h1>
+          <p className="text-xs uppercase tracking-widest text-gold">
+            Passo {principle.id} · Hill: {principle.title}
+          </p>
+          <h1 className="font-display text-xl leading-none">{principle.accessibleTitle}</h1>
         </div>
       </header>
 

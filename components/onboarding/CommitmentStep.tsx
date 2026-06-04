@@ -6,8 +6,15 @@ import { PenLine } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-// Passo 5: compromisso com assinatura simbólica (também captura o nome do usuário).
-export function CommitmentStep({ onFinish }: { onFinish: (name: string) => void }) {
+// Passo 5: compromisso com assinatura simbólica (também captura o nome do usuário)
+// e apresenta o caminho personalizado — o primeiro passo recomendado pelo diagnóstico.
+export function CommitmentStep({
+  onFinish,
+  firstStepTitle,
+}: {
+  onFinish: (name: string) => void;
+  firstStepTitle?: string;
+}) {
   const [name, setName] = useState("");
   const [error, setError] = useState<string>();
 
@@ -53,6 +60,16 @@ export function CommitmentStep({ onFinish }: { onFinish: (name: string) => void 
           error={error}
         />
       </div>
+
+      {firstStepTitle && (
+        <div className="flex items-center gap-3 rounded-2xl border border-gold/20 bg-gold/5 px-4 py-3">
+          <span className="text-gold">✦</span>
+          <p className="text-sm text-ink-muted">
+            Seu caminho começa em{" "}
+            <span className="font-semibold text-ink">{firstStepTitle}</span>
+          </p>
+        </div>
+      )}
 
       <Button size="lg" className="mt-auto w-full" onClick={finish}>
         Assinar e começar

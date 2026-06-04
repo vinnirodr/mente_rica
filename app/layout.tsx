@@ -11,9 +11,9 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "MindRich — Pense, pratique, enriqueça",
+  title: "MindRich — Mude sua mentalidade, mude seus resultados",
   description:
-    "Do aprendizado teórico à mudança real. Prática guiada dos 13 princípios, coach IA e lembretes inteligentes.",
+    "Seu sistema pessoal de transformação financeira e mental, com coach por IA e lembretes inteligentes. Guiado pelos 13 princípios — para qualquer pessoa, tenha lido o livro ou não.",
 };
 
 export const viewport: Viewport = {

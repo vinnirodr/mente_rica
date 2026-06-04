@@ -57,15 +57,15 @@ export function generateChatReply(
 
   let body: string;
   if (lower.includes("desanim") || lower.includes("difícil") || lower.includes("dificil") || lower.includes("cansad")) {
-    body = `Toda mente que realiza algo grande passou pelo ponto onde você está agora, ${name}. A persistência não é ausência de cansaço — é a continuidade do esforço apesar dele.`;
+    body = `Todo mundo que conquistou algo grande já passou exatamente por onde você está, ${name}. O segredo não é nunca cansar — é dar o próximo passo mesmo cansado. É isso que constrói resultado: a soma de pequenas ações que você não desiste de fazer.`;
   } else if (lower.includes("objetivo") || lower.includes("meta") || lower.includes("dmp")) {
     body = ctx.dmp
-      ? `Seu objetivo de R$ ${ctx.dmp.value.toLocaleString("pt-BR")} até ${new Date(ctx.dmp.deadline).toLocaleDateString("pt-BR")} é definido — e isso já te coloca à frente da maioria. Agora a pergunta é: o que você fará hoje por ele?`
-      : `Antes de tudo, ${name}, precisamos de um objetivo definido: valor, prazo e o que você dará em troca. Vamos cravar isso agora?`;
+      ? `Seu objetivo de R$ ${ctx.dmp.value.toLocaleString("pt-BR")} até ${new Date(ctx.dmp.deadline).toLocaleDateString("pt-BR")} já está definido — e isso importa porque um alvo claro faz seu cérebro filtrar oportunidades que antes passavam batido. A pergunta agora é simples: o que você faz hoje por ele?`
+      : `Antes de qualquer coisa, ${name}, vamos definir um alvo claro: quanto você quer, até quando e o que dará em troca. Por quê? Porque é impossível mirar no que não tem forma. Vamos cravar isso agora?`;
   } else if (ctx.currentPrinciple) {
-    body = `No princípio de ${ctx.currentPrinciple.title}, o segredo está na prática diária, não na compreensão intelectual. ${ctx.currentPrinciple.tip}`;
+    body = `Seu foco agora é "${ctx.currentPrinciple.accessibleTitle}". A ideia por trás disso é simples: ${ctx.currentPrinciple.tip} O que muda sua vida não é entender — é praticar isso todos os dias.`;
   } else {
-    body = `Lembre-se, ${name}: o ponto de partida de toda riqueza é um estado mental definido. Diga-me com clareza o que você quer, e eu te ajudo a construir o caminho.`;
+    body = `Aqui vai o ponto de partida, ${name}: resultado começa na mentalidade. Me diga com clareza o que você quer mudar, e eu te mostro o caminho — passo a passo, sem teoria vazia.`;
   }
 
   const action = pick(ACTIONS, userMessage.length);
@@ -74,6 +74,6 @@ export function generateChatReply(
 
 export function nextRecommendedAction(ctx: { currentPrinciple?: Principle; streak: number }): string {
   if (ctx.streak === 0) return "Faça seu primeiro check-in do dia e inicie sua sequência.";
-  if (ctx.currentPrinciple) return `Avance no exercício do princípio "${ctx.currentPrinciple.title}".`;
-  return "Releia seu objetivo principal e registre uma reflexão no diário.";
+  if (ctx.currentPrinciple) return `Avance no seu foco atual: "${ctx.currentPrinciple.accessibleTitle}".`;
+  return "Releia seu grande objetivo e registre uma reflexão no diário.";
 }

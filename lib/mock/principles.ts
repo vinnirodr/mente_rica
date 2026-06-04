@@ -8,6 +8,7 @@ import type { Principle } from "@/lib/types";
 export const PRINCIPLES: Principle[] = [
   {
     id: 1,
+    accessibleTitle: "Saiba o que você quer",
     title: "Desejo",
     subtitle: "O ponto de partida de toda realização",
     intro:
@@ -26,6 +27,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 2,
+    accessibleTitle: "Acredite que é possível",
     title: "Fé",
     subtitle: "Confiança aplicada ao objetivo",
     intro:
@@ -44,6 +46,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 3,
+    accessibleTitle: "Treine sua mente",
     title: "Autossugestão",
     subtitle: "Programando a mente subconsciente",
     intro:
@@ -62,6 +65,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 4,
+    accessibleTitle: "Aprenda o que importa",
     title: "Conhecimento Especializado",
     subtitle: "Saber aplicado vale mais que saber acumulado",
     intro:
@@ -80,6 +84,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 5,
+    accessibleTitle: "Crie soluções",
     title: "Imaginação",
     subtitle: "A oficina onde os planos nascem",
     intro:
@@ -98,6 +103,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 6,
+    accessibleTitle: "Monte seu plano",
     title: "Planejamento Organizado",
     subtitle: "Transformando desejo em ação prática",
     intro:
@@ -116,6 +122,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 7,
+    accessibleTitle: "Decida sem adiar",
     title: "Decisão",
     subtitle: "O hábito de decidir com rapidez e firmeza",
     intro:
@@ -134,6 +141,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 8,
+    accessibleTitle: "Não desista",
     title: "Persistência",
     subtitle: "O esforço sustentado que vence a resistência",
     intro:
@@ -152,6 +160,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 9,
+    accessibleTitle: "Cerque-se das pessoas certas",
     title: "Master Mind",
     subtitle: "A força da mente coletiva alinhada",
     intro:
@@ -170,6 +179,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 10,
+    accessibleTitle: "Canalize sua energia",
     title: "Energia Criativa",
     subtitle: "Transmutando impulso em realização",
     intro:
@@ -188,6 +198,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 11,
+    accessibleTitle: "Programe seu interior",
     title: "Mente Subconsciente",
     subtitle: "O elo entre pensamento e realização",
     intro:
@@ -206,6 +217,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 12,
+    accessibleTitle: "Cuide do seu ambiente mental",
     title: "O Cérebro",
     subtitle: "Transmissão e recepção de ideias",
     intro:
@@ -224,6 +236,7 @@ export const PRINCIPLES: Principle[] = [
   },
   {
     id: 13,
+    accessibleTitle: "Confie na sua intuição",
     title: "O Sexto Sentido",
     subtitle: "A intuição treinada pela prática",
     intro:

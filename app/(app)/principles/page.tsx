@@ -17,11 +17,14 @@ export default function PrinciplesPage() {
   const unlocked = useStore((s) => s.unlockedCount());
   const plan = useStore((s) => s.user.plan);
   const completed = useStore((s) => s.completedCount());
+  const recommendedId = useStore((s) => s.recommendedPrincipleId());
   const [paywall, setPaywall] = useState(false);
 
   function statusFor(id: number): PrincipleStatus {
     const p = progress[id];
     if (p?.status) return p.status;
+    // O princípio recomendado pelo diagnóstico é sempre a porta de entrada.
+    if (id === recommendedId) return "not_started";
     // Free: princípios 1–3 liberados; demais aparecem bloqueados com preview de valor.
     const planLocked = plan === "free" && id > 3;
     const progressLocked = id > unlocked;
@@ -72,7 +75,12 @@ export default function PrinciplesPage() {
                 }
               }}
             >
-              <PrincipleCard principle={p} status={statusFor(p.id)} index={i} />
+              <PrincipleCard
+                principle={p}
+                status={statusFor(p.id)}
+                index={i}
+                recommended={p.id === recommendedId}
+              />
             </div>
           ))}
         </div>

@@ -4,21 +4,16 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { QUIZ, scoreQuiz } from "@/lib/mock/quiz";
-import type { MindsetProfile } from "@/lib/types";
+import { QUIZ, scoreQuiz, type DiagnosisResult, type QuizOption } from "@/lib/mock/quiz";
 
-export function MindsetQuiz({
-  onDone,
-}: {
-  onDone: (result: { profile: MindsetProfile; description: string }) => void;
-}) {
+export function MindsetQuiz({ onDone }: { onDone: (result: DiagnosisResult) => void }) {
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<MindsetProfile[]>([]);
+  const [answers, setAnswers] = useState<QuizOption[]>([]);
   const q = QUIZ[index];
   const progress = (index / QUIZ.length) * 100;
 
-  function choose(profile: MindsetProfile) {
-    const next = [...answers, profile];
+  function choose(opt: QuizOption) {
+    const next = [...answers, opt];
     setAnswers(next);
     if (index + 1 < QUIZ.length) {
       setTimeout(() => setIndex(index + 1), 180);
@@ -31,7 +26,7 @@ export function MindsetQuiz({
     <div className="flex min-h-full flex-col gap-6 py-6">
       <div>
         <p className="mb-2 text-xs uppercase tracking-widest text-ink-faint">
-          Diagnóstico de mentalidade · {index + 1}/{QUIZ.length}
+          Diagnóstico de mentalidade e bloqueios · {index + 1}/{QUIZ.length}
         </p>
         <div className="h-1.5 overflow-hidden rounded-full bg-night-700/60">
           <motion.div
@@ -57,7 +52,7 @@ export function MindsetQuiz({
               <motion.button
                 key={opt.label}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => choose(opt.profile)}
+                onClick={() => choose(opt)}
                 className="group flex items-center justify-between rounded-2xl border border-white/10 bg-night-800/60 px-4 py-4 text-left transition-colors hover:border-gold/40 hover:bg-night-800"
               >
                 <span className="text-[15px] text-ink">{opt.label}</span>

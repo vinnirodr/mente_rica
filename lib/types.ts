@@ -9,10 +9,14 @@ export interface UserProfile {
   email: string;
   plan: Plan;
   mindsetProfile?: MindsetProfile;
+  diagnosis?: Diagnosis;
   dmp?: Dmp;
 }
 
-/** Definite Major Purpose — o objetivo principal do usuário (Princípio 1). */
+/**
+ * "Seu Grande Objetivo" na UI — o objetivo principal do usuário. Conceito do
+ * Definite Major Purpose (Princípio 1 de Hill), apresentado em linguagem acessível.
+ */
 export interface Dmp {
   value: number; // valor financeiro alvo (R$)
   deadline: string; // ISO date
@@ -22,11 +26,33 @@ export interface Dmp {
 
 export type MindsetProfile = "Sonhador" | "Construtor" | "Executor" | "Estrategista";
 
+/** Identificador dos bloqueios que o diagnóstico inicial mede. */
+export type BlockId =
+  | "clareza"
+  | "confianca"
+  | "decisao"
+  | "consistencia"
+  | "foco"
+  | "rede";
+
+export interface Block {
+  id: BlockId;
+  label: string; // rótulo acessível do bloqueio
+  principleId: number; // princípio que ataca esse bloqueio
+}
+
+/** Resultado do diagnóstico de mentalidade e bloqueios (onboarding). */
+export interface Diagnosis {
+  topBlocks: BlockId[]; // bloqueios mais pontuados (ordenados)
+  recommendedPrincipleId: number; // por onde começar
+}
+
 export type PrincipleStatus = "locked" | "not_started" | "in_progress" | "completed";
 
 export interface Principle {
   id: number; // 1..13
-  title: string;
+  accessibleTitle: string; // título em linguagem acessível (principal na UI)
+  title: string; // nome clássico de Hill (etiqueta/subtítulo)
   subtitle: string;
   intro: string; // paráfrase própria — sem texto literal do livro
   tip: string;

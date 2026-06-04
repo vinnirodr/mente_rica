@@ -64,7 +64,7 @@ export default function SettingsPage() {
         <Card className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-display text-lg">
-              <Target size={18} className="text-gold" /> Objetivo Principal
+              <Target size={18} className="text-gold" /> Meu Grande Objetivo
             </h2>
             <button
               onClick={() => setEditDmp(true)}

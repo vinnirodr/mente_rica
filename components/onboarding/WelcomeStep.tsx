@@ -3,7 +3,12 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Quote } from "@/components/ui/Quote";
+
+const PROBLEMS = [
+  "Sabe que pode mais, mas não sabe por onde começar?",
+  "Já tentou mudar de vida financeira e travou no meio do caminho?",
+  "Falta um sistema e alguém que acompanhe sua evolução?",
+];
 
 export function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
@@ -19,23 +24,37 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
 
       <div className="space-y-3 text-center">
         <h1 className="font-display text-4xl leading-tight">
-          Bem-vindo ao <span className="gold-text">MindRich</span>
+          Mude sua mentalidade.{" "}
+          <span className="gold-text">Mude seus resultados.</span>
         </h1>
         <p className="text-ink-muted">
-          Você já tem os ensinamentos. Aqui, vamos transformá-los em prática diária —
-          do conhecimento à mudança real.
+          O <span className="text-ink">MindRich</span> é seu sistema pessoal de transformação
+          financeira e mental — com um coach por IA que te acompanha todos os dias.
         </p>
       </div>
 
-      <Quote className="mx-2">
-        O ponto de partida de toda conquista é o desejo.
-      </Quote>
+      <div className="space-y-2.5">
+        {PROBLEMS.map((p, i) => (
+          <motion.div
+            key={p}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15 + i * 0.1 }}
+            className="flex items-start gap-3 rounded-2xl border border-white/10 bg-night-800/50 px-4 py-3"
+          >
+            <span className="mt-0.5 text-gold">✦</span>
+            <p className="text-sm text-ink-muted">{p}</p>
+          </motion.div>
+        ))}
+      </div>
 
       <div className="mt-2">
         <Button size="lg" className="w-full" onClick={onNext}>
-          Começar minha jornada
+          Descobrir meu ponto de partida
         </Button>
-        <p className="mt-3 text-center text-xs text-ink-faint">Leva menos de 2 minutos</p>
+        <p className="mt-3 text-center text-xs text-ink-faint">
+          Diagnóstico gratuito · leva menos de 2 minutos
+        </p>
       </div>
     </div>
   );

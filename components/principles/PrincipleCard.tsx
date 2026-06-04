@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Principle, PrincipleStatus } from "@/lib/types";
 
@@ -17,10 +17,12 @@ export function PrincipleCard({
   principle,
   status,
   index,
+  recommended,
 }: {
   principle: Principle;
   status: PrincipleStatus;
   index: number;
+  recommended?: boolean;
 }) {
   const locked = status === "locked";
   const body = (
@@ -33,8 +35,14 @@ export function PrincipleCard({
         "relative flex aspect-[4/5] flex-col justify-between rounded-3xl border p-4 transition-colors",
         STATUS_STYLE[status],
         !locked && "hover:border-gold/40",
+        recommended && status !== "completed" && "border-gold/60 shadow-glow",
       )}
     >
+      {recommended && status !== "completed" && (
+        <span className="absolute -top-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-gold-gradient px-2.5 py-0.5 text-[10px] font-bold text-night shadow-glow">
+          <Sparkles size={10} /> Comece por aqui
+        </span>
+      )}
       <div className="flex items-start justify-between">
         <span
           className={cn(
@@ -59,9 +67,11 @@ export function PrincipleCard({
         )}
       </div>
       <div>
-        <p className="font-display text-base leading-tight text-ink">{principle.title}</p>
-        <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-ink-faint">
-          {principle.subtitle}
+        <p className="font-display text-base leading-tight text-ink">
+          {principle.accessibleTitle}
+        </p>
+        <p className="mt-1 text-[10px] uppercase tracking-wider text-gold/70">
+          Hill · {principle.title}
         </p>
       </div>
     </motion.div>
