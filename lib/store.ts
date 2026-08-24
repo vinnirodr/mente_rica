@@ -8,7 +8,9 @@ import type {
   ChatMessage,
   Diagnosis,
   Dmp,
+  GamificationSnapshot,
   JournalEntry,
+  LevelDef,
   MindsetProfile,
   Plan,
   PrincipleProgress,
@@ -17,12 +19,13 @@ import type {
   UserProfile,
 } from "@/lib/types";
 import { PRINCIPLES } from "@/lib/mock/principles";
+import { ACHIEVEMENTS, getLevel, getNextLevel } from "@/lib/mock/achievements";
 import { DEFAULT_REMINDERS, seedJournal, seedNotifications } from "@/lib/mock/seed";
 import { track } from "@/lib/analytics";
 
 interface OnboardingState {
   completed: boolean;
-  step: number; // último passo alcançado (retomada — US-04)
+  step: number;
 }
 
 interface MindRichState {
@@ -76,6 +79,15 @@ interface MindRichState {
   // Assinatura
   setPlan: (plan: Plan) => void;
 
+  // Gamificação
+  xp: number;
+  unlockedAchievements: string[];
+  addXp: (amount: number, reason: string) => void;
+  checkAchievements: () => void;
+  level: () => LevelDef;
+  nextLevel: () => LevelDef | null;
+  xpToNextLevel: () => number;
+
   resetAll: () => void;
 }
 
@@ -83,13 +95,11 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Calcula a sequência de dias consecutivos com check-in, terminando hoje ou ontem. */
 function computeStreak(entries: JournalEntry[]): number {
   if (entries.length === 0) return 0;
   const dates = new Set(entries.map((e) => e.date));
   let streak = 0;
   const cursor = new Date();
-  // Permite que a sequência conte se houve check-in hoje OU ontem (ainda "viva").
   if (!dates.has(cursor.toISOString().slice(0, 10))) {
     cursor.setDate(cursor.getDate() - 1);
     if (!dates.has(cursor.toISOString().slice(0, 10))) return 0;
@@ -104,7 +114,7 @@ function computeStreak(entries: JournalEntry[]): number {
 const INITIAL_USER: UserProfile = {
   name: "",
   email: "",
-  plan: "pro", // protótipo abre como Pro para demonstrar todas as features; alternável em Configurações
+  plan: "pro",
 };
 
 export const useStore = create<MindRichState>()(
@@ -122,6 +132,8 @@ export const useStore = create<MindRichState>()(
       reminders: DEFAULT_REMINDERS,
       notifications: [],
       bestStreak: 0,
+      xp: 0,
+      unlockedAchievements: [],
 
       setOnboardingStep: (step) =>
         set((s) => ({ onboarding: { ...s.onboarding, step } })),
@@ -130,11 +142,13 @@ export const useStore = create<MindRichState>()(
       setDiagnosis: (diagnosis) => set((s) => ({ user: { ...s.user, diagnosis } })),
       recommendedPrincipleId: () => get().user.diagnosis?.recommendedPrincipleId ?? 1,
 
-      setDmp: (dmp) => set((s) => ({ user: { ...s.user, dmp } })),
+      setDmp: (dmp) => {
+        set((s) => ({ user: { ...s.user, dmp } }));
+        get().checkAchievements();
+      },
 
       completeOnboarding: (durationMs) => {
         const { progress } = get();
-        // Inicia o princípio RECOMENDADO pelo diagnóstico e popula dados de exemplo.
         const startId = get().recommendedPrincipleId();
         const seededJournal = seedJournal();
         set((s) => ({
@@ -150,6 +164,7 @@ export const useStore = create<MindRichState>()(
           durationMs,
           profile: get().user.mindsetProfile ?? "Construtor",
         });
+        get().checkAchievements();
       },
 
       startPrinciple: (id) => {
@@ -164,13 +179,15 @@ export const useStore = create<MindRichState>()(
             [id]: { ...(s.progress[id] ?? { status: "in_progress" }), reflection: text },
           },
         })),
-      setFeedback: (id, feedback) =>
+      setFeedback: (id, feedback) => {
         set((s) => ({
           progress: {
             ...s.progress,
             [id]: { ...(s.progress[id] ?? { status: "in_progress" }), status: "in_progress", feedback },
           },
-        })),
+        }));
+        get().addXp(100, "ai_feedback");
+      },
       completePrinciple: (id) => {
         set((s) => ({
           progress: {
@@ -183,7 +200,6 @@ export const useStore = create<MindRichState>()(
           },
         }));
         track("principle_completed", { id });
-        // Desbloqueio progressivo → notifica o próximo princípio.
         const next = PRINCIPLES.find((p) => p.id === id + 1);
         if (next) {
           get().pushNotification({
@@ -193,11 +209,11 @@ export const useStore = create<MindRichState>()(
             href: `/principles/${next.id}`,
           });
         }
+        get().addXp(200, "principle_completed");
       },
 
       unlockedCount: () => {
         const { progress } = get();
-        // Princípios 1–3 sempre disponíveis; demais liberam ao concluir o anterior.
         let unlocked = 3;
         for (let id = 3; id < 13; id++) {
           if (progress[id]?.status === "completed") unlocked = Math.max(unlocked, id + 1);
@@ -208,7 +224,6 @@ export const useStore = create<MindRichState>()(
         const { progress } = get();
         const inProgress = PRINCIPLES.find((p) => progress[p.id]?.status === "in_progress");
         if (inProgress) return inProgress.id;
-        // Nada em andamento: preferir o recomendado pelo diagnóstico, se não concluído.
         const recommended = get().recommendedPrincipleId();
         if (progress[recommended]?.status !== "completed") return recommended;
         const firstNotDone = PRINCIPLES.find((p) => progress[p.id]?.status !== "completed");
@@ -227,10 +242,18 @@ export const useStore = create<MindRichState>()(
           return { journal, bestStreak: Math.max(s.bestStreak, newStreak) };
         });
         track("journal_checkin_completed", { streak: get().streak() });
+        get().addXp(50, "checkin");
+        const currentStreak = get().streak();
+        if (currentStreak === 7) get().addXp(300, "streak_7");
+        if (currentStreak === 30) get().addXp(500, "streak_30");
+        if (currentStreak === 90) get().addXp(1000, "streak_90");
       },
       hasCheckedInToday: () => get().journal.some((e) => e.date === todayIso()),
 
-      addChatMessage: (msg) => set((s) => ({ chat: [...s.chat, msg] })),
+      addChatMessage: (msg) => {
+        set((s) => ({ chat: [...s.chat, msg] }));
+        if (msg.role === "user") get().checkAchievements();
+      },
       clearChat: () => set({ chat: [] }),
 
       setReminder: (kind, patch) =>
@@ -262,6 +285,70 @@ export const useStore = create<MindRichState>()(
         if (plan !== "free") track("subscription_started", { plan });
       },
 
+      // ─── Gamificação ───
+
+      addXp: (amount, reason) => {
+        const prevXp = get().xp;
+        const prevLevel = getLevel(prevXp);
+        set((s) => ({ xp: s.xp + amount }));
+        const newXp = get().xp;
+        const newLevel = getLevel(newXp);
+        track("xp_earned", { amount, reason, total: newXp });
+        if (newLevel.id !== prevLevel.id) {
+          track("level_up", { level: newLevel.label, xp: newXp });
+          get().pushNotification({
+            kind: "achievement",
+            title: `Nível alcançado: ${newLevel.label}`,
+            body: `Você atingiu ${newXp} XP e subiu de nível!`,
+            href: "/achievements",
+          });
+        }
+        get().checkAchievements();
+      },
+
+      checkAchievements: () => {
+        const state = get();
+        const snapshot: GamificationSnapshot = {
+          streak: state.streak(),
+          bestStreak: state.bestStreak,
+          completedPrinciples: state.completedCount(),
+          journalEntries: state.journal.length,
+          chatMessages: state.chat.filter((m) => m.role === "user").length,
+          hasDmp: !!state.user.dmp,
+          hasFeedback: Object.values(state.progress).some((p) => p?.feedback),
+          onboardingCompleted: state.onboarding.completed,
+        };
+        const newUnlocks: string[] = [];
+        for (const a of ACHIEVEMENTS) {
+          if (state.unlockedAchievements.includes(a.id)) continue;
+          if (a.checkProgress(snapshot) >= a.threshold) {
+            newUnlocks.push(a.id);
+          }
+        }
+        if (newUnlocks.length > 0) {
+          set((s) => ({
+            unlockedAchievements: [...s.unlockedAchievements, ...newUnlocks],
+          }));
+          for (const id of newUnlocks) {
+            const a = ACHIEVEMENTS.find((x) => x.id === id)!;
+            track("achievement_unlocked", { id: a.id, title: a.title });
+            get().pushNotification({
+              kind: "achievement",
+              title: `Conquista: ${a.title}`,
+              body: a.description,
+              href: "/achievements",
+            });
+          }
+        }
+      },
+
+      level: () => getLevel(get().xp),
+      nextLevel: () => getNextLevel(get().xp),
+      xpToNextLevel: () => {
+        const next = getNextLevel(get().xp);
+        return next ? next.minXp - get().xp : 0;
+      },
+
       resetAll: () =>
         set({
           user: INITIAL_USER,
@@ -272,6 +359,8 @@ export const useStore = create<MindRichState>()(
           reminders: DEFAULT_REMINDERS,
           notifications: [],
           bestStreak: 0,
+          xp: 0,
+          unlockedAchievements: [],
         }),
     }),
     {
