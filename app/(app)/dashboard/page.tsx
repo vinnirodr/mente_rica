@@ -10,6 +10,8 @@ import { ProgressBar } from "@/components/ui/Progress";
 import { Badge } from "@/components/ui/Badge";
 import { DmpHighlight } from "@/components/dashboard/DmpHighlight";
 import { StreakCard } from "@/components/dashboard/StreakCard";
+import { XpLevelCard } from "@/components/dashboard/XpLevelCard";
+import { RecentAchievements } from "@/components/dashboard/RecentAchievements";
 import { PRINCIPLES, getPrinciple } from "@/lib/mock/principles";
 import { nextRecommendedAction } from "@/lib/mock/coach";
 
@@ -46,6 +48,10 @@ export default function DashboardPage() {
         <DmpHighlight dmp={user.dmp} />
 
         <StreakCard streak={streak} best={best} />
+
+        <XpLevelCard />
+
+        <RecentAchievements />
 
         {/* Próxima ação recomendada pela IA */}
         <Card glow className="space-y-3 border-gold/15">
