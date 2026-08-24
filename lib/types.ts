@@ -114,36 +114,3 @@ export interface AppNotification {
   read: boolean;
   href?: string;
 }
-
-// ─── Gamificação ───
-
-export type AchievementCategory = "streak" | "principles" | "journal" | "coach" | "special";
-
-export interface GamificationSnapshot {
-  streak: number;
-  bestStreak: number;
-  completedPrinciples: number;
-  journalEntries: number;
-  chatMessages: number;
-  hasDmp: boolean;
-  hasFeedback: boolean;
-  onboardingCompleted: boolean;
-}
-
-export interface AchievementDef {
-  id: string;
-  title: string;
-  description: string;
-  category: AchievementCategory;
-  icon: string;
-  threshold: number;
-  checkProgress: (s: GamificationSnapshot) => number;
-}
-
-export type LevelId = "iniciante" | "praticante" | "dedicado" | "estrategista" | "mestre" | "lenda";
-
-export interface LevelDef {
-  id: LevelId;
-  label: string;
-  minXp: number;
-}
