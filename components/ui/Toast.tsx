@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, X } from "lucide-react";
+import { Award, Bell, X } from "lucide-react";
 import { useStore } from "@/lib/store";
 import type { AppNotification } from "@/lib/types";
 
@@ -50,8 +50,14 @@ export function ToastViewport() {
               transition={{ type: "spring", stiffness: 360, damping: 28 }}
               className="pointer-events-auto card-surface flex items-start gap-3 p-4 shadow-glow"
             >
-              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold">
-                <Bell size={18} />
+              <div
+                className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                  n.kind === "achievement"
+                    ? "bg-gold-gradient text-night shadow-glow"
+                    : "bg-gold/15 text-gold"
+                }`}
+              >
+                {n.kind === "achievement" ? <Award size={18} /> : <Bell size={18} />}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-ink">{n.title}</p>
