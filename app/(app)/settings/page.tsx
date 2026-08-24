@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Award,
   Bell,
   ChevronRight,
   Crown,
@@ -88,20 +87,6 @@ export default function SettingsPage() {
             <p className="text-sm text-ink-faint">Nenhum objetivo definido.</p>
           )}
         </Card>
-
-        {/* Conquistas */}
-        <button onClick={() => router.push("/achievements")} className="w-full text-left">
-          <Card interactive className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/15 text-gold">
-              <Award size={18} />
-            </span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-ink">Conquistas e XP</p>
-              <p className="text-xs text-ink-muted">Badges, nível e progresso</p>
-            </div>
-            <ChevronRight size={18} className="text-ink-faint" />
-          </Card>
-        </button>
 
         {/* Assinatura */}
         <button onClick={() => setPlanModal(true)} className="w-full text-left">
