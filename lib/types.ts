@@ -67,6 +67,8 @@ export interface ExerciseStep {
 
 export interface PrincipleProgress {
   status: Exclude<PrincipleStatus, "locked">;
+  /** Respostas do exercício guiado, uma por passo (mesma ordem de `Principle.exercise`). */
+  exerciseNotes?: string[];
   reflection?: string;
   feedback?: AiFeedback;
   completedAt?: string;

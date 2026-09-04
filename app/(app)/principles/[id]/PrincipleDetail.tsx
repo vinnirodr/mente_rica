@@ -11,7 +11,6 @@ import { track } from "@/lib/analytics";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
 import { Quote, randomQuote } from "@/components/ui/Quote";
-import { AudioPlayer } from "@/components/principles/AudioPlayer";
 import { ExerciseFlow } from "@/components/principles/ExerciseFlow";
 import { AiFeedbackSkeleton, AiFeedbackView } from "@/components/principles/AiFeedback";
 import type { AiFeedback } from "@/lib/types";
@@ -27,6 +26,7 @@ export default function PrincipleDetail() {
 
   const stored = useStore((s) => s.progress[id]);
   const startPrinciple = useStore((s) => s.startPrinciple);
+  const setExerciseNotesStore = useStore((s) => s.setExerciseNotes);
   const setReflectionStore = useStore((s) => s.setReflection);
   const setFeedbackStore = useStore((s) => s.setFeedback);
   const completePrinciple = useStore((s) => s.completePrinciple);
@@ -65,7 +65,6 @@ export default function PrincipleDetail() {
     track("ai_feedback_requested", { id });
     const t0 = Date.now();
     try {
-      if (Math.random() < 0.12) throw new Error("mock failure");
       const fb = await generateFeedback(reflection.trim(), principle!);
       setFeedback(fb);
       setFeedbackStore(id, fb);
@@ -123,7 +122,6 @@ export default function PrincipleDetail() {
             {phase === "learn" && (
               <>
                 <p className="font-display text-2xl italic text-ink/90">{principle.subtitle}</p>
-                <AudioPlayer title={principle.title} />
                 <p className="leading-relaxed text-ink-muted">{principle.intro}</p>
                 <div className="flex gap-3 rounded-2xl border border-gold/20 bg-gold/5 p-4">
                   <Lightbulb className="shrink-0 text-gold" size={20} />
@@ -143,7 +141,11 @@ export default function PrincipleDetail() {
             {phase === "exercise" && (
               <ExerciseFlow
                 steps={principle.exercise}
-                onComplete={() => setPhase("reflect")}
+                initialNotes={stored?.exerciseNotes}
+                onComplete={(notes) => {
+                  setExerciseNotesStore(id, notes);
+                  setPhase("reflect");
+                }}
               />
             )}
 

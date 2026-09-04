@@ -42,7 +42,3 @@ export function fireReminder(kind: ReminderKind): void {
     href: meta.href,
   });
 }
-
-export function reminderLabel(kind: ReminderKind): string {
-  return REMINDER_META[kind].label;
-}
