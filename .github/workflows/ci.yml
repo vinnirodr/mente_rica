@@ -1,0 +1,21 @@
+name: CI
+
+# O deploy passou a ser feito pela Vercel. Este workflow existe para manter um
+# portão de qualidade no repositório — antes, nada rodava em pull request.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # `next build` já roda o tsc, então uma falha de tipo reprova o PR.
+      - run: npm run build

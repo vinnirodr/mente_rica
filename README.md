@@ -13,8 +13,13 @@ no navegador — o progresso fica no `localStorage` do aparelho, sem conta e sem
 servidor. Os planos exibidos no Perfil são uma prévia: nada é cobrado no beta.
 
 O que ainda é simulado: o **Coach IA** responde por templates (não há chamada à
-Claude API) e os **lembretes** só aparecem dentro do app, não como push. Trocar
-essas duas peças por serviços reais exige backend — ver "Próximos passos".
+Claude API) e os **lembretes** só aparecem dentro do app, não como push.
+
+**Hospedagem: Vercel.** O deploy é automático a cada push na `main`. O app saiu do
+GitHub Pages porque static export não tem servidor — a chave da Claude API ficaria
+exposta no navegador, o que bloqueava o Coach IA real. O endereço antigo
+(`vinnirodr.github.io/mente_rica`) serve apenas um aviso de mudança, publicado pelo
+workflow `pages-redirect`.
 
 ## Stack
 
@@ -63,11 +68,22 @@ O estado persistido é versionado (`STORE_VERSION` em `lib/store.ts`). **Ao muda
 formato do estado, suba a versão e trate o caso no `migrate`** — sem isso o merge
 raso do Zustand quebra quem já usa o app.
 
+### Endereço do site
+
+`metadataBase` (em `app/layout.tsx`) é derivado do ambiente, nesta ordem:
+`NEXT_PUBLIC_SITE_URL` → a URL de produção que a Vercel injeta → `localhost:3000`.
+Ao apontar um domínio próprio, basta definir `NEXT_PUBLIC_SITE_URL` nas variáveis
+do projeto — não há endereço fixo no código.
+
+### Workflows
+
+- `ci.yml` — build + checagem de tipos em todo PR e na `main`.
+- `pages-redirect.yml` — manual: publica no GitHub Pages o aviso de mudança de
+  endereço (`gh-pages-redirect/`), recebendo a URL nova como parâmetro.
+
 ## Próximos passos
 
-O bloqueio para o Coach IA real é a hospedagem: em static export a chave da API
-ficaria exposta no navegador. O caminho é migrar para uma plataforma com servidor
-(Vercel) e então:
+Com servidor disponível, na ordem:
 
 1. **Coach IA real** — Route Handler + Claude API, com rate limiting por usuário.
 2. **Contas e sincronização** — Supabase (auth + banco com RLS), importando o

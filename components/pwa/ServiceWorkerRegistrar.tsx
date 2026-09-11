@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-
 /**
  * Registra o service worker. Só em produção: em desenvolvimento um SW ativo
  * serve assets em cache e mascara as alterações feitas no código.
@@ -15,7 +13,7 @@ export function ServiceWorkerRegistrar() {
 
     const onLoad = () => {
       navigator.serviceWorker
-        .register(`${BASE_PATH}/sw.js`, { scope: `${BASE_PATH}/` })
+        .register("/sw.js", { scope: "/" })
         .catch((err) => {
           console.error("Falha ao registrar o service worker", err);
         });
