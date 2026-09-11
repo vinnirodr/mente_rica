@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       new_url:
-        description: "URL do app na Vercel (ex.: https://mente-rica.vercel.app/)"
+        description: "URL do app na Vercel (ex.: https://mente-rica-chi.vercel.app/)"
         required: true
-        default: "https://mente-rica.vercel.app/"
+        default: "https://mente-rica-chi.vercel.app/"
 
 permissions:
   contents: read
@@ -45,7 +45,7 @@ jobs:
           p = pathlib.Path("dist/index.html")
           html = p.read_text(encoding="utf-8")
           html = re.sub(r'var NEW_URL = "[^"]*";', f'var NEW_URL = "{url}";', html)
-          html = html.replace('href="https://mente-rica.vercel.app/"', f'href="{url}"')
+          html = html.replace('href="https://mente-rica-chi.vercel.app/"', f'href="{url}"')
           p.write_text(html, encoding="utf-8")
           PY
 
