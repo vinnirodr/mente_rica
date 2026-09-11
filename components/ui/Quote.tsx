@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 
 // Citações no espírito de Napoleon Hill — paráfrases próprias usadas em momentos de
 // motivação contextual (princípio de UX: aparecer em hesitação/saída).
-export const HILL_QUOTES = [
+const HILL_QUOTES = [
   "Tudo que a mente consegue conceber e acreditar, ela pode alcançar.",
   "A persistência é para o caráter do homem o que o carbono é para o aço.",
   "O ponto de partida de toda conquista é o desejo.",

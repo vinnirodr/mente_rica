@@ -1,12 +1,7 @@
-import type { AppNotification, JournalEntry, ReminderPref } from "@/lib/types";
+import type { AppNotification, ReminderPref } from "@/lib/types";
 
-// Dados de exemplo para que o protótipo já abra "vivo" após o onboarding.
-
-export function isoDaysAgo(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return d.toISOString().slice(0, 10);
-}
+// Preferências padrão e mensagem de boas-vindas do primeiro acesso.
+// O diário NÃO é semeado: a sequência do usuário precisa ser conquistada de verdade.
 
 export const DEFAULT_REMINDERS: ReminderPref[] = [
   { kind: "morning_ritual", enabled: true, time: "07:00" },
@@ -40,23 +35,6 @@ export const REMINDER_META: Record<
     emoji: "🔓",
   },
 };
-
-export function seedJournal(): JournalEntry[] {
-  return [
-    {
-      date: isoDaysAgo(2),
-      answers: ["Sim", "Reli meu objetivo logo cedo", "Determinação"],
-      reflection: "Comecei o dia relendo meu propósito. Senti mais foco nas decisões.",
-      principleId: 1,
-    },
-    {
-      date: isoDaysAgo(1),
-      answers: ["Sim", "Dei um passo no plano", "Confiança"],
-      reflection: "Avancei em uma tarefa que vinha adiando. Pequeno passo, grande alívio.",
-      principleId: 1,
-    },
-  ];
-}
 
 export function seedNotifications(): AppNotification[] {
   return [

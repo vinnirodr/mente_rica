@@ -11,13 +11,18 @@ import type { ExerciseStep } from "@/lib/types";
 // reflexão final (que é submetida ao Coach IA).
 export function ExerciseFlow({
   steps,
+  initialNotes,
   onComplete,
 }: {
   steps: ExerciseStep[];
+  /** Respostas já salvas, para que o usuário retome o exercício sem reescrever. */
+  initialNotes?: string[];
   onComplete: (notes: string[]) => void;
 }) {
   const [current, setCurrent] = useState(0);
-  const [notes, setNotes] = useState<string[]>(() => steps.map(() => ""));
+  const [notes, setNotes] = useState<string[]>(() =>
+    steps.map((_, i) => initialNotes?.[i] ?? ""),
+  );
 
   const step = steps[current];
   const isLast = current === steps.length - 1;

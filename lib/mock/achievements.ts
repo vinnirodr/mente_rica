@@ -165,10 +165,6 @@ export function getNextLevel(xp: number): LevelDef | null {
   return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
 }
 
-export function getAchievement(id: string): AchievementDef | undefined {
-  return ACHIEVEMENTS.find((a) => a.id === id);
-}
-
 export const CATEGORY_LABELS: Record<AchievementDef["category"], string> = {
   streak: "Sequência",
   principles: "Princípios",

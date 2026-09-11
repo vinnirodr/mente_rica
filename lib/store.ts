@@ -20,7 +20,7 @@ import type {
 } from "@/lib/types";
 import { PRINCIPLES } from "@/lib/mock/principles";
 import { ACHIEVEMENTS, getLevel, getNextLevel } from "@/lib/mock/achievements";
-import { DEFAULT_REMINDERS, seedJournal, seedNotifications } from "@/lib/mock/seed";
+import { DEFAULT_REMINDERS, seedNotifications } from "@/lib/mock/seed";
 import { track } from "@/lib/analytics";
 
 interface OnboardingState {
@@ -52,6 +52,7 @@ interface MindRichState {
 
   // Princípios / prática
   startPrinciple: (id: number) => void;
+  setExerciseNotes: (id: number, notes: string[]) => void;
   setReflection: (id: number, text: string) => void;
   setFeedback: (id: number, feedback: AiFeedback) => void;
   completePrinciple: (id: number) => void;
@@ -67,7 +68,6 @@ interface MindRichState {
 
   // Coach
   addChatMessage: (msg: ChatMessage) => void;
-  clearChat: () => void;
 
   // Notificações
   setReminder: (kind: ReminderKind, patch: Partial<ReminderPref>) => void;
@@ -111,11 +111,35 @@ function computeStreak(entries: JournalEntry[]): number {
   return streak;
 }
 
+/** Sobe a cada mudança no formato do estado persistido. Ver `migrate` abaixo. */
+const STORE_VERSION = 1;
+
 const INITIAL_USER: UserProfile = {
   name: "",
   email: "",
+  // Beta aberto e gratuito: todo mundo tem acesso completo. Quando a cobrança
+  // existir de verdade, isto passa a vir do backend.
   plan: "pro",
 };
+
+/**
+ * Estado zerado. Fonte única para a criação do store e para `resetAll`, para que
+ * um campo novo não fique de fora do reset. Retorna objetos novos a cada chamada.
+ */
+function initialData() {
+  return {
+    user: INITIAL_USER,
+    onboarding: { completed: false, step: 0 },
+    progress: {},
+    journal: [],
+    chat: [],
+    reminders: DEFAULT_REMINDERS,
+    notifications: [],
+    bestStreak: 0,
+    xp: 0,
+    unlockedAchievements: [],
+  } satisfies Partial<MindRichState>;
+}
 
 export const useStore = create<MindRichState>()(
   persist(
@@ -123,17 +147,7 @@ export const useStore = create<MindRichState>()(
       hydrated: false,
       setHydrated: () => set({ hydrated: true }),
 
-      user: INITIAL_USER,
-      onboarding: { completed: false, step: 0 },
-
-      progress: {},
-      journal: [],
-      chat: [],
-      reminders: DEFAULT_REMINDERS,
-      notifications: [],
-      bestStreak: 0,
-      xp: 0,
-      unlockedAchievements: [],
+      ...initialData(),
 
       setOnboardingStep: (step) =>
         set((s) => ({ onboarding: { ...s.onboarding, step } })),
@@ -150,15 +164,12 @@ export const useStore = create<MindRichState>()(
       completeOnboarding: (durationMs) => {
         const { progress } = get();
         const startId = get().recommendedPrincipleId();
-        const seededJournal = seedJournal();
         set((s) => ({
           onboarding: { completed: true, step: 5 },
           progress: progress[startId]
             ? progress
             : { ...progress, [startId]: { status: "in_progress" } },
-          journal: s.journal.length ? s.journal : seededJournal,
           notifications: s.notifications.length ? s.notifications : seedNotifications(),
-          bestStreak: Math.max(s.bestStreak, computeStreak(seededJournal)),
         }));
         track("onboarding_completed", {
           durationMs,
@@ -172,6 +183,13 @@ export const useStore = create<MindRichState>()(
         set((s) => ({ progress: { ...s.progress, [id]: { status: "in_progress" } } }));
         track("principle_started", { id });
       },
+      setExerciseNotes: (id, notes) =>
+        set((s) => ({
+          progress: {
+            ...s.progress,
+            [id]: { ...(s.progress[id] ?? { status: "in_progress" }), exerciseNotes: notes },
+          },
+        })),
       setReflection: (id, text) =>
         set((s) => ({
           progress: {
@@ -254,8 +272,6 @@ export const useStore = create<MindRichState>()(
         set((s) => ({ chat: [...s.chat, msg] }));
         if (msg.role === "user") get().checkAchievements();
       },
-      clearChat: () => set({ chat: [] }),
-
       setReminder: (kind, patch) =>
         set((s) => ({
           reminders: s.reminders.map((r) => (r.kind === kind ? { ...r, ...patch } : r)),
@@ -349,22 +365,35 @@ export const useStore = create<MindRichState>()(
         return next ? next.minXp - get().xp : 0;
       },
 
-      resetAll: () =>
-        set({
-          user: INITIAL_USER,
-          onboarding: { completed: false, step: 0 },
-          progress: {},
-          journal: [],
-          chat: [],
-          reminders: DEFAULT_REMINDERS,
-          notifications: [],
-          bestStreak: 0,
-          xp: 0,
-          unlockedAchievements: [],
-        }),
+      resetAll: () => set(initialData()),
     }),
     {
       name: "mindrich-store",
+      version: STORE_VERSION,
+      // O merge padrão do Zustand é raso: sem migrate, um estado gravado por uma
+      // versão anterior substitui `user`/`onboarding` inteiros e campos novos vêm
+      // undefined. Cada versão nova deve preencher o que passou a existir.
+      migrate: (persisted, from) => {
+        const s = (persisted ?? {}) as Partial<MindRichState>;
+        if (from < 1) {
+          // v0 → v1: diário/streak semeados artificialmente no onboarding e campos
+          // de gamificação que podiam não existir.
+          return {
+            ...s,
+            user: { ...INITIAL_USER, ...(s.user ?? {}) },
+            onboarding: { completed: false, step: 0, ...(s.onboarding ?? {}) },
+            progress: s.progress ?? {},
+            journal: s.journal ?? [],
+            chat: s.chat ?? [],
+            reminders: s.reminders?.length ? s.reminders : DEFAULT_REMINDERS,
+            notifications: s.notifications ?? [],
+            bestStreak: s.bestStreak ?? 0,
+            xp: s.xp ?? 0,
+            unlockedAchievements: s.unlockedAchievements ?? [],
+          };
+        }
+        return s;
+      },
       onRehydrateStorage: () => (state) => state?.setHydrated(),
     },
   ),

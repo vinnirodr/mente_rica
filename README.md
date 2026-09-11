@@ -8,9 +8,18 @@ lido o livro ou não**. O usuário entra pelo problema que vive hoje; a partir d
 de Napoleon Hill, com foco na **prática guiada**, no **acompanhamento** e nos
 **lembretes inteligentes** que levam do saber ao fazer.
 
-Esta é a **Fase 1: protótipo de UX/UI completo** — todas as telas principais
-navegáveis, com dados simulados (sem backend). É a fundação visual sobre a qual a
-fatia vertical real (Supabase, Claude API, Stripe, FCM) será construída.
+Estado atual: **beta gratuito e aberto**, instalável como PWA. Todo o produto roda
+no navegador — o progresso fica no `localStorage` do aparelho, sem conta e sem
+servidor. Os planos exibidos no Perfil são uma prévia: nada é cobrado no beta.
+
+O que ainda é simulado: o **Coach IA** responde por templates (não há chamada à
+Claude API) e os **lembretes** só aparecem dentro do app, não como push.
+
+**Hospedagem: Vercel.** O deploy é automático a cada push na `main`. O app saiu do
+GitHub Pages porque static export não tem servidor — a chave da Claude API ficaria
+exposta no navegador, o que bloqueava o Coach IA real. O endereço antigo
+(`vinnirodr.github.io/mente_rica`) serve apenas um aviso de mudança, publicado pelo
+workflow `pages-redirect`.
 
 ## Stack
 
@@ -36,12 +45,12 @@ retoma de onde parou. Para recomeçar: **Perfil → Reiniciar progresso**.
 | --- | --- |
 | `/onboarding` | 5 passos: boas-vindas (foco no problema), diagnóstico de mentalidade **e bloqueios** → "comece por aqui", "Seu Grande Objetivo" (validação inline), horário dos lembretes, compromisso com o caminho personalizado |
 | `/dashboard` | Grande Objetivo em destaque, sequência (streak), progresso dos 13 princípios, próxima ação do coach |
-| `/principles` | Grid com título acessível + nome clássico de Hill, princípio recomendado em destaque ("Comece por aqui"), paywall (Free → Pro) |
-| `/principles/[id]` | Aprender (texto + áudio) → exercício guiado → reflexão + feedback de IA (alinhamento/lacuna/ação) com loading e retry |
+| `/principles` | Grid com título acessível + nome clássico de Hill, princípio recomendado em destaque ("Comece por aqui"), desbloqueio progressivo pela prática |
+| `/principles/[id]` | Aprender → exercício guiado (respostas salvas) → reflexão + feedback de IA (alinhamento/lacuna/ação) com loading e retry |
 | `/journal` | Heatmap de consistência, check-in de 1 toque, histórico pesquisável |
 | `/coach` | Chat com tom "Napoleon Hill", indicador de digitação, histórico persistido |
 | `/notifications` | Central de notificações + agendador de lembretes com **"Testar agora"** (push simulado in-app) |
-| `/settings` | Perfil, Grande Objetivo editável, gestão de planos, acesso às notificações |
+| `/settings` | Perfil, Grande Objetivo editável, prévia dos planos, exportação dos dados, acesso às notificações |
 
 ## Arquitetura
 
@@ -50,11 +59,36 @@ retoma de onde parou. Para recomeçar: **Perfil → Reiniciar progresso**.
   livro), quiz e o simulador do Coach IA.
 - `lib/notifications.ts` — agendador de lembretes simulado; interface pronta para
   trocar por Firebase Cloud Messaging.
-- `lib/analytics.ts` — eventos PostHog tipados (no-op no protótipo).
+- `lib/analytics.ts` — eventos PostHog tipados (ainda no-op).
+- `lib/export.ts` — backup dos dados em JSON (Perfil → Exportar meus dados).
+- `public/sw.js` — service worker: cache do app para uso offline e instalação.
 - `components/ui/` — design system reutilizado por todas as telas.
 
-## Próximos passos (Fase 2)
+O estado persistido é versionado (`STORE_VERSION` em `lib/store.ts`). **Ao mudar o
+formato do estado, suba a versão e trate o caso no `migrate`** — sem isso o merge
+raso do Zustand quebra quem já usa o app.
 
-Plugar serviços reais por trás das interfaces já desenhadas: Supabase (auth/dados),
-Claude API (coach), Stripe (assinaturas) e FCM (push). Depois: gamificação e
-Master Mind Groups.
+### Endereço do site
+
+`metadataBase` (em `app/layout.tsx`) é derivado do ambiente, nesta ordem:
+`NEXT_PUBLIC_SITE_URL` → a URL de produção que a Vercel injeta → `localhost:3000`.
+Ao apontar um domínio próprio, basta definir `NEXT_PUBLIC_SITE_URL` nas variáveis
+do projeto — não há endereço fixo no código.
+
+### Workflows
+
+- `ci.yml` — build + checagem de tipos em todo PR e na `main`.
+- `pages-redirect.yml` — manual: publica no GitHub Pages o aviso de mudança de
+  endereço (`gh-pages-redirect/`), recebendo a URL nova como parâmetro.
+
+## Próximos passos
+
+Com servidor disponível, na ordem:
+
+1. **Coach IA real** — Route Handler + Claude API, com rate limiting por usuário.
+2. **Contas e sincronização** — Supabase (auth + banco com RLS), importando o
+   `localStorage` de quem já usa o beta.
+3. **Push de verdade** — Web Push (VAPID) + agendamento server-side dos lembretes.
+4. **Analytics, jurídico e landing** — PostHog, política de privacidade (LGPD) e
+   uma página inicial que explique o produto.
+5. **Cobrança** — Stripe, quando o beta terminar.
