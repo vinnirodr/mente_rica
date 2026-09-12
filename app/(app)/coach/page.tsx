@@ -5,7 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { getPrinciple } from "@/lib/mock/principles";
-import { generateChatReply } from "@/lib/mock/coach";
+import { CoachError, streamChatReply } from "@/lib/coach/api";
 import { ChatBubble, TypingIndicator } from "@/components/coach/ChatBubble";
 import type { ChatMessage } from "@/lib/types";
 
@@ -23,15 +23,19 @@ export default function CoachPage() {
 
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  /** Resposta parcial enquanto chega; só vai para o store quando completa. */
+  const [streamed, setStreamed] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [chat, typing]);
+  }, [chat, typing, streamed]);
 
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || typing) return;
+
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
       role: "user",
@@ -41,18 +45,39 @@ export default function CoachPage() {
     addChatMessage(userMsg);
     setInput("");
     setTyping(true);
-    const reply = await generateChatReply(trimmed, {
-      dmp: user.dmp,
-      currentPrinciple: getPrinciple(currentId),
-      name: user.name,
-    });
-    setTyping(false);
-    addChatMessage({
-      id: `a-${Date.now()}`,
-      role: "assistant",
-      content: reply,
-      createdAt: new Date().toISOString(),
-    });
+    setStreamed("");
+    setError(null);
+
+    // O store ainda não refletiu a mensagem nova neste render, então monta o
+    // histórico à mão para não enviar uma conversa defasada.
+    const history = [...chat, userMsg].map((m) => ({ role: m.role, content: m.content }));
+
+    try {
+      const reply = await streamChatReply(
+        {
+          messages: history,
+          principle: getPrinciple(currentId),
+          name: user.name || undefined,
+          dmp: user.dmp,
+        },
+        (chunk) => setStreamed((prev) => prev + chunk),
+      );
+      addChatMessage({
+        id: `a-${Date.now()}`,
+        role: "assistant",
+        content: reply,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      setError(
+        err instanceof CoachError
+          ? err.message
+          : "Não consegui falar com o coach agora. Tente de novo.",
+      );
+    } finally {
+      setTyping(false);
+      setStreamed("");
+    }
   }
 
   return (
@@ -83,7 +108,25 @@ export default function CoachPage() {
         {chat.map((m) => (
           <ChatBubble key={m.id} message={m} />
         ))}
-        <AnimatePresence>{typing && <TypingIndicator />}</AnimatePresence>
+
+        {streamed && (
+          <ChatBubble
+            message={{
+              id: "streaming",
+              role: "assistant",
+              content: streamed,
+              createdAt: new Date().toISOString(),
+            }}
+          />
+        )}
+
+        <AnimatePresence>{typing && !streamed && <TypingIndicator />}</AnimatePresence>
+
+        {error && (
+          <div className="rounded-2xl border border-ember/30 bg-ember/10 p-4 text-center text-sm text-ink">
+            {error}
+          </div>
+        )}
       </div>
 
       {chat.length === 0 && (

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Lightbulb, RotateCcw } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { getPrinciple } from "@/lib/mock/principles";
-import { generateFeedback } from "@/lib/mock/coach";
+import { CoachError, requestFeedback } from "@/lib/coach/api";
 import { track } from "@/lib/analytics";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
@@ -25,6 +25,7 @@ export default function PrincipleDetail() {
   const principle = getPrinciple(id);
 
   const stored = useStore((s) => s.progress[id]);
+  const user = useStore((s) => s.user);
   const startPrinciple = useStore((s) => s.startPrinciple);
   const setExerciseNotesStore = useStore((s) => s.setExerciseNotes);
   const setReflectionStore = useStore((s) => s.setReflection);
@@ -35,7 +36,7 @@ export default function PrincipleDetail() {
   const [reflection, setReflection] = useState(stored?.reflection ?? "");
   const [feedback, setFeedback] = useState<AiFeedback | undefined>(stored?.feedback);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (principle) startPrinciple(id);
@@ -60,17 +61,27 @@ export default function PrincipleDetail() {
   async function submitReflection() {
     if (tooShort) return;
     setLoading(true);
-    setError(false);
+    setError(null);
     setReflectionStore(id, reflection.trim());
     track("ai_feedback_requested", { id });
     const t0 = Date.now();
     try {
-      const fb = await generateFeedback(reflection.trim(), principle!);
+      const fb = await requestFeedback({
+        reflection: reflection.trim(),
+        principleId: id,
+        name: user.name || undefined,
+        dmp: user.dmp,
+        exerciseNotes: stored?.exerciseNotes,
+      });
       setFeedback(fb);
       setFeedbackStore(id, fb);
       track("ai_feedback_received", { id, latencyMs: Date.now() - t0 });
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError(
+        err instanceof CoachError
+          ? err.message
+          : "Não consegui falar com o coach agora. Seu texto está salvo.",
+      );
     } finally {
       setLoading(false);
     }
@@ -181,9 +192,8 @@ export default function PrincipleDetail() {
 
                 {error && !loading && (
                   <div className="space-y-3 rounded-2xl border border-ember/30 bg-ember/10 p-4 text-center">
-                    <p className="text-sm text-ink">
-                      Não consegui falar com o coach agora. Seu texto está salvo.
-                    </p>
+                    <p className="text-sm text-ink">{error}</p>
+                    <p className="text-xs text-ink-muted">Seu texto continua salvo.</p>
                     <Button variant="secondary" onClick={submitReflection}>
                       <RotateCcw size={16} /> Tentar novamente
                     </Button>

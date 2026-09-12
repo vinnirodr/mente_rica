@@ -12,8 +12,9 @@ Estado atual: **beta gratuito e aberto**, instalável como PWA. Todo o produto r
 no navegador — o progresso fica no `localStorage` do aparelho, sem conta e sem
 servidor. Os planos exibidos no Perfil são uma prévia: nada é cobrado no beta.
 
-O que ainda é simulado: o **Coach IA** responde por templates (não há chamada à
-Claude API) e os **lembretes** só aparecem dentro do app, não como push.
+O **Coach IA é real**: roda na Claude API por trás de rotas do servidor, e a chave
+nunca chega ao navegador. Ainda é simulado apenas o **lembrete**, que só aparece
+dentro do app e não como push.
 
 **Hospedagem: Vercel.** O deploy é automático a cada push na `main`. O app saiu do
 GitHub Pages porque static export não tem servidor — a chave da Claude API ficaria
@@ -32,9 +33,13 @@ workflow `pages-redirect`.
 
 ```bash
 npm install
+export ANTHROPIC_API_KEY=sk-ant-...   # sem isso o Coach responde 503
 npm run dev
 # http://localhost:3000
 ```
+
+Na Vercel, a mesma variável fica em **Settings → Environment Variables**. Ela é lida
+apenas no servidor — não use o prefixo `NEXT_PUBLIC_`, que a exporia no navegador.
 
 Primeira visita → onboarding. O progresso é salvo no `localStorage`; recarregar
 retoma de onde parou. Para recomeçar: **Perfil → Reiniciar progresso**.
@@ -55,8 +60,14 @@ retoma de onde parou. Para recomeçar: **Perfil → Reiniciar progresso**.
 ## Arquitetura
 
 - `lib/store.ts` — fonte única da verdade (usuário, progresso, diário, chat, notificações).
-- `lib/mock/` — dados simulados: princípios (paráfrase própria, sem texto literal do
-  livro), quiz e o simulador do Coach IA.
+- `lib/mock/` — conteúdo estático: princípios (paráfrase própria, sem texto literal
+  do livro), quiz e conquistas.
+- `app/api/coach/` — rotas do Coach IA. `feedback` devolve o retorno estruturado
+  (alinhamento/lacuna/ação) via saída estruturada; `chat` responde em streaming.
+  Ambas usam `claude-opus-5` — trocar o modelo é uma linha em `lib/coach/client.ts`.
+- `lib/rate-limit.ts` — limite por IP (10 reflexões e 30 mensagens por hora).
+  **É em memória, então na Vercel vale por instância** — freia uso acidental, não
+  abuso determinado. A proteção real depende de contas (próximo passo).
 - `lib/notifications.ts` — agendador de lembretes simulado; interface pronta para
   trocar por Firebase Cloud Messaging.
 - `lib/analytics.ts` — eventos PostHog tipados (ainda no-op).
@@ -83,12 +94,10 @@ do projeto — não há endereço fixo no código.
 
 ## Próximos passos
 
-Com servidor disponível, na ordem:
-
-1. **Coach IA real** — Route Handler + Claude API, com rate limiting por usuário.
-2. **Contas e sincronização** — Supabase (auth + banco com RLS), importando o
-   `localStorage` de quem já usa o beta.
-3. **Push de verdade** — Web Push (VAPID) + agendamento server-side dos lembretes.
-4. **Analytics, jurídico e landing** — PostHog, política de privacidade (LGPD) e
+1. **Contas e sincronização** — Supabase (auth + banco com RLS). Além de sincronizar
+   entre aparelhos, é o que permite limitar o Coach por usuário: hoje o endpoint é
+   público e cada chamada custa dinheiro.
+2. **Push de verdade** — Web Push (VAPID) + agendamento server-side dos lembretes.
+3. **Analytics, jurídico e landing** — PostHog, política de privacidade (LGPD) e
    uma página inicial que explique o produto.
-5. **Cobrança** — Stripe, quando o beta terminar.
+4. **Cobrança** — Stripe, quando o beta terminar.
