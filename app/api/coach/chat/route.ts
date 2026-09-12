@@ -2,6 +2,7 @@ import { z } from "zod";
 import { anthropic, apiErrorResponse, COACH_MODEL, hasApiKey } from "@/lib/coach/client";
 import { buildContextBlock, COACH_SYSTEM, type CoachContext } from "@/lib/coach/prompt";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { MAX_HISTORY, MAX_HISTORY_ACCEPTED } from "@/lib/coach/limits";
 import { getPrinciple } from "@/lib/mock/principles";
 
 export const runtime = "nodejs";
@@ -9,8 +10,6 @@ export const dynamic = "force-dynamic";
 
 const LIMIT = 30;
 const WINDOW_MS = 60 * 60 * 1000;
-/** Teto do histórico enviado: cada turno extra é custo de entrada em toda mensagem. */
-const MAX_HISTORY = 10;
 
 const BodySchema = z.object({
   messages: z
@@ -21,7 +20,7 @@ const BodySchema = z.object({
       }),
     )
     .min(1)
-    .max(40),
+    .max(MAX_HISTORY_ACCEPTED),
   principleId: z.number().int().min(1).max(13).optional(),
   name: z.string().max(120).optional(),
   dmp: z

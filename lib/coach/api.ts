@@ -1,4 +1,5 @@
 import type { AiFeedback, ChatMessage, Dmp, Principle } from "@/lib/types";
+import { MAX_HISTORY } from "@/lib/coach/limits";
 
 /** Erro com mensagem já pronta para exibir ao usuário. */
 export class CoachError extends Error {}
@@ -51,7 +52,11 @@ export async function streamChatReply(
     headers: { "Content-Type": "application/json" },
     signal,
     body: JSON.stringify({
-      messages: input.messages.map((m) => ({ role: m.role, content: m.content })),
+      // Corta aqui: a conversa inteira fica salva no aparelho, mas enviá-la toda
+      // encareceria cada mensagem e, acima do teto aceito, travaria o chat.
+      messages: input.messages
+        .slice(-MAX_HISTORY)
+        .map((m) => ({ role: m.role, content: m.content })),
       principleId: input.principle?.id,
       name: input.name,
       dmp: input.dmp,
