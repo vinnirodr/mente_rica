@@ -13,7 +13,7 @@ import { StreakCard } from "@/components/dashboard/StreakCard";
 import { XpLevelCard } from "@/components/dashboard/XpLevelCard";
 import { RecentAchievements } from "@/components/dashboard/RecentAchievements";
 import { PRINCIPLES, getPrinciple } from "@/lib/mock/principles";
-import { nextRecommendedAction } from "@/lib/mock/coach";
+import { nextRecommendedAction } from "@/lib/coach/next-action";
 
 function greeting(): string {
   const h = new Date().getHours();
